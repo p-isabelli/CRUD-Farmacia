@@ -22,9 +22,7 @@ import com.generation.mixfarma.model.Produto;
 import com.generation.mixfarma.repository.CategoriaRepository;
 import com.generation.mixfarma.repository.ProdutoRepository;
 
-
 import jakarta.validation.Valid;
-
 
 @RestController
 @RequestMapping("/produtos")
@@ -38,7 +36,7 @@ public class ProdutoController {
 	private ProdutoRepository produtoRepository;
 	
 	@GetMapping
-	public ResponseEntity <List<Produto>> getAll(){
+	public ResponseEntity<List<Produto>> getAll(){
 		return ResponseEntity.ok(produtoRepository.findAll());
 	}
 	
@@ -50,13 +48,13 @@ public class ProdutoController {
 				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	}
 	
-	@GetMapping("/{produto}")
-	public ResponseEntity <List<Produto>> getByTitle(@PathVariable String nome){
+	@GetMapping("/nome/{nome}")
+	public ResponseEntity<List<Produto>> getByTitle(@PathVariable String nome){
 		return ResponseEntity.ok(produtoRepository.findAllByNomeContainingIgnoreCase(nome));
 	}
 	
 	@GetMapping("/descricao/{descricao}")
-	public ResponseEntity <List<Produto>> getByString(@PathVariable String descricao){
+	public ResponseEntity<List<Produto>> getByString(@PathVariable String descricao){
 		return ResponseEntity.ok(produtoRepository.findAllByDescricaoContainingIgnoreCase(descricao));
 	}
 	
@@ -72,25 +70,23 @@ public class ProdutoController {
 		}		
 	}
 	
-	@PutMapping
-	public ResponseEntity<Produto> put (@Valid @RequestBody Produto produto){
-		if(produtoRepository.existsById(produto.getId())) {
-			
-			if (categoriaRepository.existsById(produto.getCategoria().getIdcat()))
-		return produtoRepository.findById(produto.getId())
-				.map(resposta -> ResponseEntity.status(HttpStatus.OK)
-				.body(produtoRepository.save(produto)))
-				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-		
-		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "categoria inexistente.", null);
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+	@PutMapping("/{id}")
+	public ResponseEntity<Produto> put (@PathVariable Long id, @Valid @RequestBody Produto produto){
+	    if(produtoRepository.existsById(id)) {
+	        if (categoriaRepository.existsById(produto.getCategoria().getIdcat())) {
+	            return produtoRepository.findById(id)
+	                .map(resposta -> ResponseEntity.status(HttpStatus.OK).body(produtoRepository.save(produto)))
+	                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+	        }
+	        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria inexistente.", null);
+	    }
+	    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}
 	
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@DeleteMapping("/{id}")
 	public void delete (@PathVariable Long id) {
-		Optional <Produto> produto = produtoRepository.findById(id);
+		Optional<Produto> produto = produtoRepository.findById(id);
 		
 		if (produto.isEmpty())
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
